@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 @Component({
@@ -8,3 +9,10 @@ import { RouterOutlet } from '@angular/router';
   template: '<router-outlet />'
 })
 export class App {}
+  imports: [RouterOutlet],
+  templateUrl: './app.html',
+  styleUrl: './app.css'
+})
+export class App {
+  protected readonly title = signal('GoldenGrill-Web');
+}
