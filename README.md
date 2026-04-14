@@ -39,7 +39,7 @@ flowchart LR
 
 ## API Endpoints
 
-Base URL: `http://localhost:5000/api`
+Base URL: `http://localhost:5001/api`
 
 | Method | Endpoint | Description | Response |
 |--------|----------|-------------|----------|
@@ -92,9 +92,20 @@ golden-grill/
 └── GoldenGrill-Web/                      # branch: GoldenGrill-Web
     ├── src/
     │   ├── app/
+    │   │   ├── core/
+    │   │   │   ├── product.model.ts      # Product interface
+    │   │   │   └── services/
+    │   │   │       └── product.service.ts  # HttpClient calls to the API
+    │   │   ├── features/
+    │   │   │   └── menu/
+    │   │   │       ├── menu.component.ts   # Fetches products, loading/error signals
+    │   │   │       └── menu.component.html # Tailwind grid, dark theme
     │   │   ├── app.ts                    # Root standalone component
-    │   │   ├── app.routes.ts             # Angular Router config
-    │   │   └── app.config.ts             # Application providers
+    │   │   ├── app.routes.ts             # / mapped to MenuComponent
+    │   │   └── app.config.ts             # provideRouter + provideHttpClient
+    │   ├── environments/
+    │   │   ├── environment.ts            # apiUrl: http://localhost:5001/api
+    │   │   └── environment.prod.ts       # apiUrl: /api (relative, for Docker)
     │   ├── styles.css                    # @import "tailwindcss"
     │   ├── main.ts                       # Bootstrap entry point
     │   └── index.html
@@ -133,7 +144,7 @@ cd golden-grill
 # Run the API
 git checkout GoldenGrill.Api
 docker build -t golden-grill-api ./GoldenGrill.Api
-docker run -p 5000:8080 golden-grill-api
+docker run -p 5001:8080 golden-grill-api
 
 # In a second terminal, run the frontend
 git checkout GoldenGrill-Web
@@ -143,7 +154,7 @@ docker run -p 4200:80 golden-grill-web
 
 | Service | URL |
 |---------|-----|
-| API | `http://localhost:5000/api/products` |
+| API | `http://localhost:5001/api/products` |
 | Frontend | `http://localhost:4200` |
 
 ### Option B: Local toolchain
@@ -156,7 +167,7 @@ cd GoldenGrill.Api
 dotnet run
 ```
 
-The API starts on `http://localhost:5000`. SQLite database and migrations are applied automatically on first run.
+The API starts on `http://localhost:5001`. SQLite database and migrations are applied automatically on first run.
 
 **Frontend**
 
@@ -178,7 +189,7 @@ The Angular dev server starts on `http://localhost:4200`.
 Both services use multi-stage Dockerfiles to minimise final image size. The API build stage compiles and publishes with the full .NET SDK; the runtime stage copies only the published output into the lean `aspnet:8.0` image. The frontend build stage runs `ng build` in Node 20; the runtime stage copies only the compiled `dist/` output into `nginx:alpine`.
 
 ### CORS Configured for Cross-Origin Development
-The API applies a permissive CORS policy in development (`AllowAnyOrigin`), enabling the Angular dev server on `:4200` to call the API on `:5000` without proxy configuration. The same policy can be tightened to a specific origin for production.
+The API reads allowed origins from `appsettings.json` under `Cors:AllowedOrigins`, set to `http://localhost:4200` for development. This lets the Angular dev server call the API on `:5001` without proxy configuration. Adding a production origin requires only a config change, no code change.
 
 ### Tailwind v4 with Zero Configuration
 Tailwind v4 removes the need for a `tailwind.config.js`. Content scanning happens automatically via the Vite plugin. The entire setup is two lines: a `vite.config.ts` that registers `@tailwindcss/vite`, and `@import "tailwindcss"` in `styles.css`.
@@ -197,7 +208,7 @@ cd golden-grill
 docker build -t golden-grill-api ./GoldenGrill.Api
 docker build -t golden-grill-web ./GoldenGrill-Web
 
-docker run -d -p 5000:8080 --name api golden-grill-api
+docker run -d -p 5001:8080 --name api golden-grill-api
 docker run -d -p 80:80 --name web golden-grill-web
 ```
 
