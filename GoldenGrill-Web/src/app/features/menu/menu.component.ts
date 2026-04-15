@@ -1,6 +1,7 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ProductService } from '../../core/services/product.service';
+import { CartService } from '../../core/services/cart.service';
 import { Product } from '../../core/product.model';
 
 @Component({
@@ -10,11 +11,12 @@ import { Product } from '../../core/product.model';
   templateUrl: './menu.component.html'
 })
 export class MenuComponent implements OnInit {
+  private productService = inject(ProductService);
+  private cartService = inject(CartService);
+
   products = signal<Product[]>([]);
   loading = signal(true);
   error = signal(false);
-
-  constructor(private productService: ProductService) {}
 
   ngOnInit(): void {
     this.productService.getAll().subscribe({
@@ -27,5 +29,9 @@ export class MenuComponent implements OnInit {
         this.loading.set(false);
       }
     });
+  }
+
+  addToCart(product: Product): void {
+    this.cartService.addToCart(product);
   }
 }

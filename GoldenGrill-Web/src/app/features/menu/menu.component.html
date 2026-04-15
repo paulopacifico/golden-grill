@@ -1,48 +1,69 @@
-<section class="min-h-screen bg-zinc-950 text-white px-6 py-12">
-
+<section class="min-h-screen bg-zinc-950 text-white px-6 py-10">
   <div class="max-w-5xl mx-auto">
 
-    <div class="mb-10 text-center">
-      <h1 class="text-4xl font-bold tracking-tight text-yellow-400">Golden Grill</h1>
-      <p class="mt-2 text-zinc-400 text-lg">Cardápio</p>
+    <div class="mb-10">
+      <h2 class="text-3xl font-bold text-white">Cardápio</h2>
+      <p class="mt-1 text-zinc-400">Escolha o seu favorito e monte seu pedido</p>
     </div>
 
     @if (loading()) {
-      <div class="flex justify-center py-20">
-        <span class="text-zinc-500 text-sm animate-pulse">Carregando cardápio...</span>
-      </div>
-    }
-
-    @if (error()) {
-      <div class="flex justify-center py-20">
-        <span class="text-red-500 text-sm">Não foi possível carregar o cardápio. Tente novamente.</span>
-      </div>
-    }
-
-    @if (!loading() && !error()) {
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        @for (product of products(); track product.id) {
-          <div class="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden hover:border-yellow-500 transition-colors duration-200">
-            <div class="h-48 bg-zinc-800 flex items-center justify-center">
-              <span class="text-5xl">🍔</span>
-            </div>
-            <div class="p-5">
-              <h2 class="text-lg font-semibold text-white">{{ product.name }}</h2>
-              <p class="mt-1 text-sm text-zinc-400 leading-relaxed">{{ product.description }}</p>
-              <div class="mt-4 flex items-center justify-between">
-                <span class="text-yellow-400 font-bold text-xl">
-                  R$ {{ product.price.toFixed(2) }}
-                </span>
-                <button class="bg-yellow-400 hover:bg-yellow-300 text-black text-sm font-semibold px-4 py-2 rounded-xl transition-colors duration-150">
-                  Adicionar
-                </button>
-              </div>
+        @for (i of [1,2,3]; track i) {
+          <div class="bg-zinc-900 rounded-2xl overflow-hidden animate-pulse">
+            <div class="h-52 bg-zinc-800"></div>
+            <div class="p-5 space-y-3">
+              <div class="h-4 bg-zinc-800 rounded w-3/4"></div>
+              <div class="h-3 bg-zinc-800 rounded w-full"></div>
+              <div class="h-3 bg-zinc-800 rounded w-2/3"></div>
             </div>
           </div>
         }
       </div>
     }
 
-  </div>
+    @if (error()) {
+      <div class="flex flex-col items-center py-20 gap-3">
+        <span class="text-4xl">⚠️</span>
+        <p class="text-red-400 text-sm">Não foi possível carregar o cardápio. Verifique sua conexão.</p>
+      </div>
+    }
 
+    @if (!loading() && !error()) {
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        @for (product of products(); track product.id) {
+          <div class="group bg-zinc-900 border border-zinc-800 hover:border-yellow-500/60 rounded-2xl overflow-hidden transition-all duration-200 hover:shadow-lg hover:shadow-yellow-500/10 flex flex-col">
+
+            <div class="relative h-52 overflow-hidden bg-zinc-800">
+              <img
+                [src]="product.imageUrl"
+                [alt]="product.name"
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"
+              />
+              <div class="absolute inset-0 hidden items-center justify-center text-6xl">🍔</div>
+              <div class="absolute top-3 right-3 bg-yellow-400 text-black text-sm font-bold px-3 py-1 rounded-full shadow">
+                R$ {{ product.price.toFixed(2) }}
+              </div>
+            </div>
+
+            <div class="p-5 flex flex-col flex-1">
+              <h2 class="text-lg font-semibold text-white leading-tight">{{ product.name }}</h2>
+              <p class="mt-2 text-sm text-zinc-400 leading-relaxed flex-1">{{ product.description }}</p>
+              <button
+                (click)="addToCart(product)"
+                class="mt-5 w-full bg-yellow-400 hover:bg-yellow-300 active:scale-95 text-black font-semibold py-2.5 rounded-xl transition-all duration-150 flex items-center justify-center gap-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+                </svg>
+                Adicionar ao Carrinho
+              </button>
+            </div>
+
+          </div>
+        }
+      </div>
+    }
+
+  </div>
 </section>

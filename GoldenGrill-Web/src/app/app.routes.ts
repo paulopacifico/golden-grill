@@ -5,5 +5,3 @@ export const routes: Routes = [
   { path: '', component: MenuComponent },
   { path: '**', redirectTo: '' }
 ];
-
-export const routes: Routes = [];
