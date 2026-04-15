@@ -18,7 +18,7 @@ public class AppDbContext : DbContext
                 Name = "Classic Smash",
                 Description = "Double smash patty, cheddar, pickles, mustard",
                 Price = 29.90m,
-                ImageUrl = "/images/classic-smash.jpg"
+                ImageUrl = "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&q=80"
             },
             new Product
             {
@@ -26,7 +26,7 @@ public class AppDbContext : DbContext
                 Name = "BBQ Bacon Crunch",
                 Description = "Crispy bacon, BBQ sauce, onion rings, cheddar",
                 Price = 34.90m,
-                ImageUrl = "/images/bbq-bacon-crunch.jpg"
+                ImageUrl = "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=600&q=80"
             },
             new Product
             {
@@ -34,7 +34,7 @@ public class AppDbContext : DbContext
                 Name = "Spicy Jalapeño",
                 Description = "Jalapeños, pepper jack, chipotle mayo, lettuce",
                 Price = 31.90m,
-                ImageUrl = "/images/spicy-jalapeno.jpg"
+                ImageUrl = "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=600&q=80"
             }
         );
     }
