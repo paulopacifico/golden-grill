@@ -8,6 +8,7 @@ RUN npm run build
 
 # Stage 2 — Serve via Nginx
 FROM nginx:alpine AS runtime
+COPY --from=build /app/dist/GoldenGrill-Web/browser /usr/share/nginx/html
 COPY --from=build /app/dist/golden-grill-web/browser /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
