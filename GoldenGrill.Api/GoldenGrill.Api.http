@@ -1,0 +1,6 @@
+@GoldenGrill.Api_HostAddress = http://localhost:5189
+
+GET {{GoldenGrill.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
