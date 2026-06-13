@@ -16,7 +16,7 @@ A full-stack burger shop platform built with a clean separation between a RESTfu
 
 ## Why This Project
 
-- **Two independently deployable services.** The API and the frontend live on separate Git branches, are built by separate Dockerfiles, and can be deployed, scaled, or replaced without touching each other.
+- **Two independently deployable services.** The API and the frontend live in separate folders, are built by separate Dockerfiles, and can be deployed, scaled, or replaced without touching each other.
 - **Zero-config database bootstrapping.** EF Core migrations run automatically on API startup. A fresh container is fully seeded with product data in seconds, no manual SQL scripts required.
 - **Standalone Angular architecture.** No NgModules. Every component is self-contained, tree-shakeable by default, and wired through the Angular Router without any shared module overhead.
 - **Tailwind v4 via Vite plugin.** Configured through `@tailwindcss/vite` and a single `@import "tailwindcss"` in the global stylesheet. No `tailwind.config.js` required; the compiler scans source files automatically.
@@ -75,33 +75,40 @@ Three burgers are seeded automatically on first run via EF Core `HasData`:
 
 ```text
 golden-grill/
-├── SPEC-KIT-SKILL.md                     # Full technical specification
-│
-├── GoldenGrill.Api/                      # branch: GoldenGrill.Api
+├── GoldenGrill.Api/
 │   ├── Controllers/
-│   │   └── ProductsController.cs         # Full CRUD controller
+│   │   ├── ProductsController.cs         # Full CRUD controller
+│   │   └── OrdersController.cs           # Order placement and retrieval
 │   ├── Data/
 │   │   └── AppDbContext.cs               # EF Core context + HasData seed
 │   ├── Models/
-│   │   └── Product.cs                    # Domain model
+│   │   ├── Product.cs                    # Domain model
+│   │   ├── Order.cs                      # Order + OrderItem entities
+│   │   └── OrderDtos.cs                  # Request/response records
 │   ├── Migrations/                       # EF Core migrations (auto-applied on startup)
+│   ├── wwwroot/images/                   # Static product images
 │   ├── Program.cs                        # DI, CORS, auto-migrate wiring
 │   ├── GoldenGrill.Api.csproj            # EF Core 8 + SQLite + Design
 │   └── Dockerfile                        # Multi-stage: sdk:8.0 to aspnet:8.0
 │
-└── GoldenGrill-Web/                      # branch: GoldenGrill-Web
+└── GoldenGrill-Web/
     ├── src/
     │   ├── app/
     │   │   ├── core/
-    │   │   │   ├── product.model.ts      # Product interface
+    │   │   │   ├── product.model.ts
+    │   │   │   ├── order.model.ts
     │   │   │   └── services/
-    │   │   │       └── product.service.ts  # HttpClient calls to the API
+    │   │   │       ├── product.service.ts
+    │   │   │       ├── cart.service.ts
+    │   │   │       └── order.service.ts
     │   │   ├── features/
-    │   │   │   └── menu/
-    │   │   │       ├── menu.component.ts   # Fetches products, loading/error signals
-    │   │   │       └── menu.component.html # Tailwind grid, dark theme
+    │   │   │   ├── menu/                 # Product grid
+    │   │   │   └── confirmation/         # Post-order confirmation screen
+    │   │   ├── shared/
+    │   │   │   ├── header/               # Branded header with cart trigger
+    │   │   │   └── cart/                 # Cart sidebar with order placement
     │   │   ├── app.ts                    # Root standalone component
-    │   │   ├── app.routes.ts             # / mapped to MenuComponent
+    │   │   ├── app.routes.ts             # / and /confirmation
     │   │   └── app.config.ts             # provideRouter + provideHttpClient
     │   ├── environments/
     │   │   ├── environment.ts            # apiUrl: http://localhost:5001/api
@@ -109,6 +116,7 @@ golden-grill/
     │   ├── styles.css                    # @import "tailwindcss"
     │   ├── main.ts                       # Bootstrap entry point
     │   └── index.html
+    ├── public/logo.png                   # Header brand asset
     ├── vite.config.ts                    # @tailwindcss/vite plugin
     ├── angular.json
     ├── nginx.conf                        # SPA routing + gzip
@@ -117,20 +125,9 @@ golden-grill/
 
 ## Git Branch Strategy
 
-Each concern lives on its own branch. `main` holds only shared documentation.
+All development happens on `main`. The API and the frontend live in sibling folders within a single tree, with separate Dockerfiles so each service still builds and deploys independently.
 
-```
-* GoldenGrill-Web   ← Angular 21 · Tailwind v4 · Nginx
-| * GoldenGrill.Api ← ASP.NET Core 8 · EF Core · SQLite
-|/
-* main              ← README · SPEC-KIT-SKILL.md
-```
-
-| Branch | Responsibility |
-|--------|----------------|
-| `main` | Documentation, specification, Docker Compose (future) |
-| `GoldenGrill.Api` | REST API, database, migrations, backend Dockerfile |
-| `GoldenGrill-Web` | Angular frontend, Tailwind config, Nginx, frontend Dockerfile |
+The historical `GoldenGrill.Api` and `GoldenGrill-Web` feature branches have been consolidated into `main`. They are kept on the remote for reference only and should not receive new commits.
 
 ## How to Run Locally
 
@@ -142,12 +139,10 @@ git clone https://github.com/paulopacifico/golden-grill.git
 cd golden-grill
 
 # Run the API
-git checkout GoldenGrill.Api
 docker build -t golden-grill-api ./GoldenGrill.Api
 docker run -p 5001:8080 golden-grill-api
 
 # In a second terminal, run the frontend
-git checkout GoldenGrill-Web
 docker build -t golden-grill-web ./GoldenGrill-Web
 docker run -p 4200:80 golden-grill-web
 ```
@@ -162,7 +157,6 @@ docker run -p 4200:80 golden-grill-web
 **Backend**
 
 ```bash
-git checkout GoldenGrill.Api
 cd GoldenGrill.Api
 dotnet run
 ```
@@ -172,7 +166,6 @@ The API starts on `http://localhost:5001`. SQLite database and migrations are ap
 **Frontend**
 
 ```bash
-git checkout GoldenGrill-Web
 cd GoldenGrill-Web
 npm install
 ng serve
@@ -212,13 +205,12 @@ docker run -d -p 5001:8080 --name api golden-grill-api
 docker run -d -p 80:80 --name web golden-grill-web
 ```
 
-Configure the VPS Nginx reverse proxy to route your domain to the containers. A `docker-compose.yml` at the root of `main` is planned to simplify multi-container orchestration.
+Configure the VPS Nginx reverse proxy to route your domain to the containers. A `docker-compose.yml` at the repository root is planned to simplify multi-container orchestration.
 
 ## Next Steps
 
 - **Docker Compose** to start both services from `main` with a single command
+- **JWT authentication** to protect product mutations and back an admin panel
 - **Product detail page** with Angular route `/products/:id`
-- **Shopping cart** using Angular signals and localStorage persistence
-- **Order flow** with checkout form, order entity, and confirmation API
-- **Authentication** with JWT-based auth and role-separated endpoints
+- **Cart persistence** with `sessionStorage` so a refresh does not empty the cart
 - **Image upload** with a multipart endpoint to store burger images
