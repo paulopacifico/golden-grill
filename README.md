@@ -131,26 +131,22 @@ The historical `GoldenGrill.Api` and `GoldenGrill-Web` feature branches have bee
 
 ## How to Run Locally
 
-### Option A: Docker (recommended)
+### Option A: Docker Compose (recommended)
 
 ```bash
-# Clone the repo
 git clone https://github.com/paulopacifico/golden-grill.git
 cd golden-grill
-
-# Run the API
-docker build -t golden-grill-api ./GoldenGrill.Api
-docker run -p 5001:8080 golden-grill-api
-
-# In a second terminal, run the frontend
-docker build -t golden-grill-web ./GoldenGrill-Web
-docker run -p 4200:80 golden-grill-web
+docker compose up --build
 ```
+
+The frontend is published on port 80 and Nginx reverse-proxies `/api/*` to the API container over the internal Docker network. SQLite data is persisted in a named volume (`api-data`) so it survives container rebuilds.
 
 | Service | URL |
 |---------|-----|
-| API | `http://localhost:5001/api/products` |
-| Frontend | `http://localhost:4200` |
+| Frontend | `http://localhost` |
+| API (through Nginx) | `http://localhost/api/products` |
+
+The API container is intentionally not exposed to the host in this setup. To hit it directly from the host for debugging, run the API with the local toolchain (Option B) instead, or add a `ports` mapping to the `api` service.
 
 ### Option B: Local toolchain
 
@@ -196,21 +192,17 @@ The project uses Angular's modern standalone API throughout. There are no `NgMod
 # On the VPS
 git clone https://github.com/paulopacifico/golden-grill.git
 cd golden-grill
-
-# Build and start both services
-docker build -t golden-grill-api ./GoldenGrill.Api
-docker build -t golden-grill-web ./GoldenGrill-Web
-
-docker run -d -p 5001:8080 --name api golden-grill-api
-docker run -d -p 80:80 --name web golden-grill-web
+docker compose up -d --build
 ```
 
-Configure the VPS Nginx reverse proxy to route your domain to the containers. A `docker-compose.yml` at the repository root is planned to simplify multi-container orchestration.
+Both services come up under the supplied `docker-compose.yml`. The frontend listens on port 80; Nginx inside the `web` container reverse-proxies `/api/*` to the `api` container. The SQLite database is persisted in the `api-data` named volume.
+
+For TLS, terminate HTTPS on the host's Nginx (or Traefik / Caddy) and forward to the `web` container on port 80.
 
 ## Next Steps
 
-- **Docker Compose** to start both services from `main` with a single command
 - **JWT authentication** to protect product mutations and back an admin panel
 - **Product detail page** with Angular route `/products/:id`
 - **Cart persistence** with `sessionStorage` so a refresh does not empty the cart
 - **Image upload** with a multipart endpoint to store burger images
+- **CI** to build the API, build the Angular app, and exercise the compose stack on every push
